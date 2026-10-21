@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOTO Board v2.0 — SITE-001 [CLOUD]</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root{--bg:#f0f2f5;--card:#fff;--text:#172b4d;--text2:#44546f;--muted:#8993a4;--border:#e0e0e0;--blight:#ebecf0;--accent:#0052CC;--danger:#c62828;--success:#2e7d32;--warn:#ff991f;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--mono:'Consolas','SF Mono',monospace;--r:10px;--rs:6px;--rp:100px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);font-family:var(--sans);color:var(--text);padding:16px;min-height:100vh;}
+
+/* ── HEADER ── */
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.header h1{font-size:20px;font-weight:700;} .header h1 i{color:var(--danger);margin-right:4px;}
+.site-badge{background:var(--danger);color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:var(--rp);}
+.live-dot{width:8px;height:8px;background:#36b37e;border-radius:50%;display:inline-block;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.header-right{display:flex;align-items:center;gap:14px;}
+.clock{font-family:var(--mono);font-size:16px;font-weight:600;}
+
+/* ── KPI ── */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.kpi-card{cursor:pointer;transition:all .15s;}.kpi-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);transform:translateY(-1px);}.kpi-card.active-filter{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,82,204,.25);}
+.kpi-icon{width:40px;height:40px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;flex-shrink:0;}
+.kpi-icon.total{background:var(--accent);} .kpi-icon.inuse{background:var(--danger);} .kpi-icon.free{background:var(--success);} .kpi-icon.alert{background:var(--warn);}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.kpi-value{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1.1;}
+
+/* ── VIEW TABS ── */
+.view-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:4px;width:fit-content;}
+.view-tab{padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;}
+.view-tab:hover{background:#f4f5f7;} .view-tab.active{background:var(--accent);color:#fff;} .view-tab i{margin-right:6px;}
+.view-panel{display:none;} .view-panel.active{display:block;}
+
+/* ── DASHBOARD ── */
+.cat-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.cat-tab{padding:6px 14px;border-radius:var(--rp);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text2);transition:all .15s;}
+.cat-tab:hover{background:#f4f5f7;} .cat-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:20px;}
+.lock-tile{border-radius:8px;padding:10px 8px;text-align:center;border:2px solid transparent;position:relative;transition:transform .1s;cursor:default;}
+.lock-tile:hover{transform:scale(1.03);}
+.lock-tile .lock-name{font-size:15px;font-weight:700;font-family:var(--mono);margin-bottom:3px;}
+.lock-tile .lock-status{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.lock-tile .lock-user{font-size:10px;margin-top:3px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lock-tile .lock-time{font-size:9px;margin-top:2px;opacity:.7;font-family:var(--mono);}
+.lock-tile.free{background:#e8f5e9;border-color:#c8e6c9;color:#2e7d32;}
+.lock-tile.inuse-A{background:#ffcdd2;border-color:#ef9a9a;color:#b71c1c;}
+.lock-tile.inuse-S{background:#bbdefb;border-color:#90caf9;color:#0d47a1;}
+.lock-tile.inuse-C{background:#fff9c4;border-color:#fff176;color:#f57f17;}
+.lock-tile.alert-tile{border-color:var(--danger)!important;animation:alertPulse 1.5s infinite;}
+@keyframes alertPulse{0%,100%{box-shadow:0 0 0 0 rgba(198,40,40,.3)}50%{box-shadow:0 0 0 5px rgba(198,40,40,0)}}
+.lock-tile .alert-badge{position:absolute;top:-5px;right:-5px;background:var(--danger);color:#fff;font-size:8px;font-weight:700;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.alert-banner{background:#fff3e0;border:1px solid #ffe0b2;border-left:4px solid var(--warn);border-radius:8px;padding:10px 16px;margin-bottom:10px;display:flex;align-items:center;gap:10px;font-size:12px;}
+.alert-banner i{color:var(--warn);font-size:16px;} .alert-banner strong{color:var(--danger);}
+.alert-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px;overflow:hidden;}.alert-box-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;cursor:pointer;background:#fff3e0;border-bottom:1px solid #ffe0b2;user-select:none;}.alert-box-header:hover{background:#ffecb3;}.alert-box-header .alert-title{font-size:13px;font-weight:700;color:var(--danger);display:flex;align-items:center;gap:8px;}.alert-box-header .alert-toggle{font-size:12px;color:var(--muted);transition:transform .2s;}.alert-box-body{max-height:300px;overflow-y:auto;transition:max-height .3s ease;}.alert-box-body.collapsed{max-height:0;overflow:hidden;}
+
+/* ── CHECK-IN / OUT ── */
+.cio-container{max-width:620px;margin:0 auto;}
+.mode-toggle{display:flex;gap:0;margin-bottom:20px;border-radius:var(--r);overflow:hidden;border:2px solid var(--accent);}
+.mode-btn{flex:1;padding:14px;text-align:center;font-size:15px;font-weight:700;cursor:pointer;border:none;background:var(--card);color:var(--accent);transition:all .15s;}
+.mode-btn.active{background:var(--accent);color:#fff;}
+.mode-btn:hover:not(.active){background:#e3f2fd;}
+.sheet-selector{text-align:center;margin-bottom:20px;}
+.sheet-selector p{font-size:13px;color:var(--text2);margin-bottom:12px;font-weight:600;}
+.sheet-buttons{display:flex;gap:10px;justify-content:center;}
+.sheet-btn{flex:1;max-width:180px;padding:20px 12px;border-radius:12px;border:3px solid var(--border);background:var(--card);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.sheet-btn:hover{transform:scale(1.03);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.sheet-btn.red{color:#b71c1c;} .sheet-btn.red.sel{background:#ffcdd2;border-color:#c62828;}
+.sheet-btn.blue{color:#0d47a1;} .sheet-btn.blue.sel{background:#bbdefb;border-color:#1565c0;}
+.sheet-btn.yellow{color:#f57f17;} .sheet-btn.yellow.sel{background:#fff9c4;border-color:#f9a825;}
+.sheet-btn .sheet-icon{font-size:28px;}
+.cio-fields{margin-top:4px;}
+.cio-group{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:12px;}
+.cio-group h3{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.cio-group h3 .step-num{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.cio-input{width:100%;padding:12px 14px;border-radius:var(--rs);border:2px solid var(--border);font-size:16px;font-family:var(--mono);font-weight:600;outline:none;transition:border-color .15s;}
+.cio-input:focus{border-color:var(--accent);}
+.cio-select{width:100%;padding:12px 14px;border-radius:var(--rs);border:2px solid var(--border);font-size:14px;font-family:var(--mono);font-weight:600;outline:none;background:var(--card);transition:border-color .15s;}
+.cio-select:focus{border-color:var(--accent);}
+.cio-detect{margin-top:6px;font-size:12px;min-height:18px;font-weight:600;}
+.cio-detect.found{color:var(--success);} .cio-detect.notfound{color:var(--danger);}
+.btn-submit{width:100%;padding:16px;border-radius:var(--r);border:none;font-size:16px;font-weight:700;cursor:pointer;color:#fff;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;}
+.btn-submit.ci{background:var(--danger);} .btn-submit.ci:hover{background:#b71c1c;}
+.btn-submit.co{background:var(--success);} .btn-submit.co:hover{background:#1b5e20;}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed;}
+.cio-flash{padding:14px 18px;border-radius:var(--r);margin-top:14px;font-weight:600;font-size:14px;display:none;text-align:center;}
+.cio-flash.ok{display:block;background:#c8e6c9;color:#1b5e20;} .cio-flash.err{display:block;background:#ffcdd2;color:#b71c1c;}
+
+/* ── HISTORY ── */
+.hist-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.hist-tab{padding:8px 18px;border-radius:var(--rp);font-size:13px;font-weight:700;cursor:pointer;border:2px solid transparent;transition:all .15s;background:var(--card);}
+.hist-tab.a-tab{color:#b71c1c;border-color:#ffcdd2;background:#ffebee;} .hist-tab.a-tab.active{background:#c62828;color:#fff;border-color:#c62828;}
+.hist-tab.b-tab{color:#0d47a1;border-color:#bbdefb;background:#e3f2fd;} .hist-tab.b-tab.active{background:#1565c0;color:#fff;border-color:#1565c0;}
+.hist-tab.c-tab{color:#f57f17;border-color:#fff9c4;background:#fffde7;} .hist-tab.c-tab.active{background:#f9a825;color:#fff;border-color:#f9a825;}
+.storico-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.storico-toolbar label{font-size:12px;font-weight:600;color:var(--text2);}
+.storico-toolbar select,.storico-toolbar input{padding:6px 10px;border-radius:var(--rs);border:1px solid var(--border);font-size:12px;background:var(--card);color:var(--text);}
+.storico-toolbar .search-box{width:200px;}
+.btn-download{margin-left:auto;padding:8px 16px;border-radius:8px;border:none;background:var(--success);color:#fff;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-download:hover{background:#1b5e20;}
+.storico-table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;overflow-y:auto;}
+.storico-table{width:100%;border-collapse:collapse;font-size:12px;}
+.storico-table{min-width:900px;}
+.storico-table thead{background:#f4f5f7;position:sticky;top:0;z-index:1;}
+.storico-table th{padding:10px 12px;text-align:left;font-weight:700;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.03em;cursor:pointer;user-select:none;white-space:nowrap;border-bottom:2px solid var(--border);}
+.storico-table th:hover{background:#ebedf0;}
+.storico-table td{padding:8px 12px;border-bottom:1px solid var(--blight);}
+.storico-table tbody tr:hover{background:#e3f2fd;}
+.storico-table tbody tr:nth-child(even){background:#f8f9fa;}
+.storico-table tbody tr:nth-child(even):hover{background:#e3f2fd;}
+.storico-table .active-row{background:#fff8e1!important;} .storico-table .active-row:hover{background:#fff3c4!important;}
+.cat-badge{display:inline-block;padding:1px 6px;border-radius:var(--rp);font-size:9px;font-weight:700;}
+.cat-badge.A{background:#ffcdd2;color:#b71c1c;} .cat-badge.S{background:#bbdefb;color:#0d47a1;} .cat-badge.C{background:#fff9c4;color:#f57f17;}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;font-size:12px;color:var(--text2);}
+.pagination button{padding:4px 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);font-size:12px;cursor:pointer;color:var(--text);}
+.pagination button:hover{background:#f4f5f7;} .pagination button:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── ADMIN ── */
+.admin-section{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;margin-bottom:16px;}
+.admin-section h3{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.admin-section h3 i{color:var(--accent);}
+.admin-section h3 .badge-count{background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:var(--rp);}
+.admin-form{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-end;}
+.admin-form .field{display:flex;flex-direction:column;gap:3px;}
+.admin-form .field label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;}
+.admin-form .field input,.admin-form .field select{padding:7px 10px;border-radius:var(--rs);border:1px solid var(--border);font-size:13px;background:var(--card);color:var(--text);}
+.admin-form .field input:focus,.admin-form .field select:focus{border-color:var(--accent);outline:none;}
+.btn-admin{padding:7px 14px;border-radius:var(--rs);border:none;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.btn-admin.add{background:var(--accent);color:#fff;} .btn-admin.add:hover{background:#003d99;}
+.admin-list{max-height:280px;overflow-y:auto;}
+.admin-list table{width:100%;border-collapse:collapse;font-size:12px;}
+.admin-list th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;background:#f4f5f7;border-bottom:2px solid var(--border);position:sticky;top:0;}
+.admin-list td{padding:6px 10px;border-bottom:1px solid var(--blight);}
+.admin-list tr:hover{background:#e3f2fd;}
+.admin-list .active-yes{color:var(--success);font-weight:600;} .admin-list .active-no{color:var(--danger);font-weight:600;}
+.btn-row{display:flex;gap:4px;}
+.btn-sm{padding:3px 8px;border-radius:4px;border:none;font-size:10px;font-weight:600;cursor:pointer;}
+.btn-sm.edit{background:#e3f2fd;color:var(--accent);} .btn-sm.edit:hover{background:#bbdefb;}
+.btn-sm.del{background:#ffebee;color:var(--danger);} .btn-sm.del:hover{background:#ffcdd2;}
+.btn-sm.toggle{background:#fff3e0;color:#e65100;} .btn-sm.toggle:hover{background:#ffe0b2;}
+.admin-flash{padding:8px 14px;border-radius:var(--rs);margin-bottom:10px;font-size:12px;font-weight:600;display:none;}
+.admin-flash.ok{display:block;background:#c8e6c9;color:#1b5e20;} .admin-flash.err{display:block;background:#ffcdd2;color:#b71c1c;}
+.admin-pw-status{display:inline-flex;align-items:center;gap:6px;margin-left:10px;font-size:12px;font-weight:600;padding:4px 12px;border-radius:var(--rp);}.admin-pw-status.ok{background:#c8e6c9;color:#1b5e20;}.admin-pw-status.wrong{background:#ffcdd2;color:#b71c1c;}.admin-pw-status.none{display:none;}.btn-logout{padding:5px 14px;border-radius:var(--rs);border:1px solid var(--danger);background:#fff;color:var(--danger);font-size:12px;font-weight:600;cursor:pointer;display:none;margin-left:8px;}.btn-logout:hover{background:#ffebee;}
+
+@media(max-width:768px){.kpi-row{grid-template-columns:repeat(2,1fr)}.board{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}.storico-toolbar{flex-direction:column;align-items:stretch}.btn-download{margin-left:0}.sheet-buttons{flex-direction:column;align-items:center;}}
+</style>
+</head>
+<body>
+
+<!-- ══════ HEADER ══════ -->
+<div class="header">
+    <div class="header-left">
+        <h1><i class="fa-solid fa-lock"></i> Digital LOTO Board</h1>
+        <span class="site-badge" id="site-badge">SITE-001</span>
+        <span class="live-dot" id="live-dot"></span>
+        <span id="status-text" style="font-size:11px;color:var(--muted)">Connecting...</span>
+    </div>
+    <div class="header-right">
+        <span id="clock" class="clock">--:--:--</span>
+        <span id="date-display" style="font-size:11px;color:var(--text2)"></span>
+    </div>
+</div>
+
+<!-- ══════ VIEW TABS ══════ -->
+<div class="view-tabs">
+    <button class="view-tab active" data-view="dashboard"><i class="fa-solid fa-grip"></i>Live Dashboard</button>
+    <button class="view-tab" data-view="checkinout"><i class="fa-solid fa-barcode"></i>Check-in / Out</button>
+    <button class="view-tab" data-view="storico"><i class="fa-solid fa-clock-rotate-left"></i>Operation History</button>
+    <button class="view-tab" data-view="admin"><i class="fa-solid fa-gear"></i>Admin Config</button>
+</div>
+
+<!-- ══════ VIEW 1: DASHBOARD ══════ -->
+<div id="view-dashboard" class="view-panel active">
+    <div class="kpi-row">
+        <div class="kpi-card active-filter" data-kpifilter="all" onclick="setKpiFilter('all')"><div class="kpi-icon total"><i class="fa-solid fa-key"></i></div><div><div class="kpi-label">Total</div><div class="kpi-value" id="kpi-total">--</div></div></div>
+        <div class="kpi-card" data-kpifilter="inuse" onclick="setKpiFilter('inuse')"><div class="kpi-icon inuse"><i class="fa-solid fa-lock"></i></div><div><div class="kpi-label">In Use</div><div class="kpi-value" id="kpi-inuse">--</div></div></div>
+        <div class="kpi-card" data-kpifilter="free" onclick="setKpiFilter('free')"><div class="kpi-icon free"><i class="fa-solid fa-lock-open"></i></div><div><div class="kpi-label">Available</div><div class="kpi-value" id="kpi-free">--</div></div></div>
+        <div class="kpi-card" data-kpifilter="alert" onclick="setKpiFilter('alert')"><div class="kpi-icon alert"><i class="fa-solid fa-triangle-exclamation"></i></div><div><div class="kpi-label">Alerts &gt;10h</div><div class="kpi-value" id="kpi-alert">--</div></div></div>
+    </div>
+    <div id="alert-area" style="display:none"><div class="alert-box"><div class="alert-box-header" onclick="toggleAlerts()"><span class="alert-title"><i class="fa-solid fa-triangle-exclamation"></i> <span id="alert-title-text">0 Alerts</span></span><span class="alert-toggle" id="alert-toggle-icon"><i class="fa-solid fa-chevron-down"></i></span></div><div class="alert-box-body" id="alert-box-body"></div></div></div>
+    <div class="cat-tabs" id="cat-tabs">
+        <div class="cat-tab active" data-cat="all">All</div>
+        <div class="cat-tab" data-cat="A">A</div>
+        <div class="cat-tab" data-cat="B">S</div>
+        <div class="cat-tab" data-cat="C">C</div>
+    </div>
+    <div class="board" id="board-grid"></div>
+</div>
+
+<!-- ══════ VIEW 2: CHECK-IN / CHECK-OUT ══════ -->
+<div id="view-checkinout" class="view-panel">
+    <div class="cio-container">
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="mode-ci" onclick="setCioMode('checkin')"><i class="fa-solid fa-lock"></i> CHECK-IN (Take Lock)</button>
+            <button class="mode-btn" id="mode-co" onclick="setCioMode('checkout')"><i class="fa-solid fa-lock-open"></i> CHECK-OUT (Return Lock)</button>
+        </div>
+        <div class="sheet-selector">
+            <p><i class="fa-solid fa-file-lines"></i> Select LOTO Sheet Type</p>
+            <div class="sheet-buttons">
+                <button class="sheet-btn red" onclick="selectSheet('A')"><span class="sheet-icon">🔴</span>Red (A)</button>
+                <button class="sheet-btn blue" onclick="selectSheet('B')"><span class="sheet-icon">🔵</span>Blue (B)</button>
+                <button class="sheet-btn yellow" onclick="selectSheet('C')"><span class="sheet-icon">🟡</span>Yellow (C)</button>
+            </div>
+        </div>
+        <div id="cio-fields" class="cio-fields"></div>
+        <button class="btn-submit ci" id="cio-submit" style="display:none" onclick="submitCio()"><i class="fa-solid fa-lock"></i> CONFIRM CHECK-IN</button>
+        <div class="cio-flash" id="cio-flash"></div>
+    </div>
+</div>
+
+<!-- ══════ VIEW 3: OPERATION HISTORY ══════ -->
+<div id="view-storico" class="view-panel">
+    <div class="hist-tabs">
+        <button class="hist-tab a-tab active" data-type="A"><i class="fa-solid fa-circle" style="font-size:9px;color:#c62828"></i> Red (A) Log</button>
+        <button class="hist-tab b-tab" data-type="B"><i class="fa-solid fa-circle" style="font-size:9px;color:#1565c0"></i> Blue (B) Log</button>
+        <button class="hist-tab c-tab" data-type="C"><i class="fa-solid fa-circle" style="font-size:9px;color:#f9a825"></i> Yellow (C) Log</button>
+    </div>
+    <div class="storico-toolbar">
+        <label>Month:</label>
+        <select id="filter-month"></select>
+        <input type="text" class="search-box" id="filter-search" placeholder="&#x1F50D; Search...">
+        <button class="btn-download" id="btn-export"><i class="fa-solid fa-file-csv"></i> Download CSV</button>
+    </div>
+    <div class="storico-table-wrap" style="max-height:550px;overflow-y:auto">
+        <table class="storico-table">
+            <thead id="storico-head"></thead>
+            <tbody id="storico-body"></tbody>
+        </table>
+    </div>
+    <div class="pagination">
+        <span id="storico-count">0 results</span>
+        <div>
+            <button id="page-prev" disabled>&laquo; Previous</button>
+            <span id="page-info" style="margin:0 10px"></span>
+            <button id="page-next">Next &raquo;</button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════ VIEW 4: ADMIN CONFIG ══════ -->
+<div id="view-admin" class="view-panel">
+    <div class="admin-flash" id="admin-flash"></div>
+    <div class="admin-section" style="background:#fff3e0;border-color:#ffe0b2">
+        <h3><i class="fa-solid fa-shield-halved" style="color:#e65100"></i> Admin Password</h3>
+        <div class="admin-form">
+            <div class="field"><label>Password</label><input type="password" id="admin-pw" placeholder="Enter admin password..." style="width:250px" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+            <button class="btn-admin add" id="btn-admin-login" onclick="adminLogin()"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+            <button class="btn-logout" id="btn-admin-logout" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            <span class="admin-pw-status none" id="admin-pw-status"></span>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:-4px" id="admin-pw-hint">Required for adding, editing, and deleting. Not needed for viewing.</p>
+    </div>
+    <div class="admin-section">
+        <h3><i class="fa-solid fa-id-badge"></i> Operators <span class="badge-count" id="op-count">0</span></h3>
+        <div class="admin-form">
+            <div class="field"><label>Badge ID</label><input type="text" id="op-badge" placeholder="e.g. 10000001"></div>
+            <div class="field"><label>Login</label><input type="text" id="op-login" placeholder="e.g. marco.ricci"></div>
+            <button class="btn-admin add" onclick="adminAdd('badge_map','op-badge','op-login')"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+        <div class="admin-list" id="op-list"></div>
+    </div>
+    <div class="admin-section">
+        <h3><i class="fa-solid fa-key"></i> Locks <span class="badge-count" id="lock-count">0</span></h3>
+        <div class="admin-form">
+            <div class="field"><label>Lock Number</label><input type="text" id="lk-number" placeholder="e.g. A21"></div>
+            <div class="field"><label>Category</label><select id="lk-category"><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></div>
+            <button class="btn-admin add" onclick="adminAdd('lock_list','lk-number','lk-category')"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+        <div class="admin-list" id="lock-list"></div>
+    </div>
+    <div class="admin-section">
+        <h3><i class="fa-solid fa-location-dot"></i> Locations <span class="badge-count" id="loc-count">0</span></h3>
+        <div class="admin-form">
+            <div class="field"><label>Location Name</label><input type="text" id="loc-name" placeholder="e.g. Sorter Lane 3"></div>
+            <button class="btn-admin add" onclick="adminAddSimple('locations','loc-name')"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+        <div class="admin-list" id="loc-list"></div>
+    </div>
+    <div class="admin-section">
+        <h3><i class="fa-solid fa-clipboard-list"></i> Reasons <span class="badge-count" id="reason-count">0</span></h3>
+        <div class="admin-form">
+            <div class="field"><label>Reason</label><input type="text" id="rsn-name" placeholder="e.g. Scheduled PM"></div>
+            <button class="btn-admin add" onclick="adminAddSimple('reasons','rsn-name')"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+        <div class="admin-list" id="reason-list"></div>
+    </div>
+    <div class="admin-section">
+        <h3><i class="fa-solid fa-building"></i> Contractors <span class="badge-count" id="contr-count">0</span></h3>
+        <div class="admin-form">
+            <div class="field"><label>Company Name</label><input type="text" id="contr-name" placeholder="e.g. ACME Maintenance"></div>
+            <button class="btn-admin add" onclick="adminAddSimple('contractors','contr-name')"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+        <div class="admin-list" id="contr-list"></div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- SCRIPTS                                        -->
+<!-- ══════════════════════════════════════════════ -->
+<script>
+// ── CONFIG ──
+var CONFIG={API_URL:"https://YOUR-API-ID.execute-api.eu-west-1.amazonaws.com/prod",API_KEY:"YOUR-API-KEY-HERE",POLL_MS:15000,SITE:"SITE-001",ALERT_H:10};
+// DEMO mode is ON while API_URL/API_KEY still hold their placeholder values (or are empty).
+// Once you fill in the real API Gateway URL + key, the page automatically switches to LIVE.
+function isPlaceholder(v){return !v || v.indexOf("YOUR-API")>=0;}
+var DEMO=isPlaceholder(CONFIG.API_URL)||isPlaceholder(CONFIG.API_KEY);
+
+// ── LIVE API CLIENT ──────────────────────────────────────────────────
+// Thin wrapper around fetch() that injects the API key and parses errors.
+async function apiFetch(path,opts){
+    opts=opts||{};
+    var headers=Object.assign({"x-api-key":CONFIG.API_KEY},opts.headers||{});
+    var resp=await fetch(CONFIG.API_URL+path,Object.assign({},opts,{headers:headers}));
+    var data;
+    try{data=await resp.json();}catch(e){data={};}
+    if(!resp.ok)throw new Error((data&&data.error)||("HTTP "+resp.status));
+    return data;
+}
+
+// ── LOCK MASTER LIST ──
+var ALL_LOCKS=[
+    "A01","A02","A03","A04","A05","A06","A07","A08","A09","A10",
+    "A11","A12","A13","A14","A15","A16","A17","A18","A19","A20",
+    "B01","B02","B03","B04","B05","B06","B07","B08","B09","B10",
+    "B11","B12","B13","B14","B15","B16","B17","B18","B19","B20","B21","B22","B23","B24","B25","B26",
+    "C01","C02","C03","C04","C05","C06","C07","C08","C09","C10",
+    "C11","C12","C13","C14","C15","C16","C17","C18","C19","C20"
+];
+function getCat(l){if(l.startsWith("A"))return"A";if(l.startsWith("B"))return"B";if(l.startsWith("C"))return"C";return"?";}
+
+// ── DEMO: ACTIVE CHECK-INS (keyed by lock for dashboard) ──
+var demoCheckins={
+    "A02":{user:"marco.ricci",equipment:"Sorter Lane 3",reason:"Scheduled PM",checkin_time:"2026-09-18T03:02:00Z"},
+    "A05":{user:"sarah.kumar",equipment:"Conveyor C7",reason:"Component replacement",checkin_time:"2026-09-18T12:15:00Z"},
+    "A11":{user:"yuki.tanaka",equipment:"Induction 2",reason:"Corrective maintenance",checkin_time:"2026-09-18T13:45:00Z"},
+    "B03":{user:"alex.novak",equipment:"Sorter Lane 1",reason:"Component replacement",checkin_time:"2026-09-18T09:05:00Z"},
+    "B14":{user:"james.oconnor",equipment:"Sorter Lane 8",reason:"Cleaning",checkin_time:"2026-09-18T12:50:00Z"},
+    "C04":{contractor_company:"ExtFix Ltd",equipment:"Conveyor C4",reason:"Scheduled PM",checkin_time:"2026-09-18T07:30:00Z"},
+    "C15":{contractor_company:"ACME Maintenance",equipment:"Take-away 3",reason:"Scheduled PM",checkin_time:"2026-09-18T14:32:00Z"}
+};
+
+// ── DEMO: LOG RECORDS (Appendix A format — one row per lock usage) ──
+// Each record = one check-in cycle. If checkout_time is empty → still active.
+var demoLog=[
+    // Active A
+    {lock_number:"A02",category:"A",equipment:"Sorter Lane 3",user_in:"marco.ricci",checkin_time:"2026-09-18T03:02:00Z",reason:"Scheduled PM",user_out:"",checkout_time:""},
+    {lock_number:"A05",category:"A",equipment:"Conveyor C7",user_in:"sarah.kumar",checkin_time:"2026-09-18T12:15:00Z",reason:"Component replacement",user_out:"",checkout_time:""},
+    {lock_number:"A11",category:"A",equipment:"Induction 2",user_in:"yuki.tanaka",checkin_time:"2026-09-18T13:45:00Z",reason:"Corrective maintenance",user_out:"",checkout_time:""},
+    // Completed A
+    {lock_number:"A08",category:"A",equipment:"Sorter Lane 5",user_in:"elena.popov",checkin_time:"2026-09-17T22:10:00Z",reason:"Scheduled PM",user_out:"priya.sharma",checkout_time:"2026-09-18T14:18:00Z"},
+    {lock_number:"A03",category:"A",equipment:"Induction 1",user_in:"ravi.patel",checkin_time:"2026-09-17T00:30:00Z",reason:"Scheduled PM",user_out:"anna.fischer",checkout_time:"2026-09-17T06:00:00Z"},
+    {lock_number:"A12",category:"A",equipment:"Divert 2",user_in:"lucas.berg",checkin_time:"2026-09-16T08:00:00Z",reason:"Inspection",user_out:"lucas.berg",checkout_time:"2026-09-16T10:30:00Z"},
+    // Active S
+    {lock_number:"B03",category:"B",equipment:"Sorter Lane 1",user_in:"alex.novak",checkin_time:"2026-09-18T09:05:00Z",reason:"Component replacement",user_out:"",checkout_time:""},
+    {lock_number:"B14",category:"B",equipment:"Sorter Lane 8",user_in:"james.oconnor",checkin_time:"2026-09-18T12:50:00Z",reason:"Cleaning",user_out:"",checkout_time:""},
+    // Completed S
+    {lock_number:"B07",category:"B",equipment:"Divert 5",user_in:"priya.sharma",checkin_time:"2026-09-18T08:10:00Z",reason:"Inspection",user_out:"alex.novak",checkout_time:"2026-09-18T11:10:00Z"},
+    {lock_number:"B01",category:"B",equipment:"Conveyor C1",user_in:"omar.hassan",checkin_time:"2026-09-16T14:00:00Z",reason:"Scheduled PM",user_out:"omar.hassan",checkout_time:"2026-09-16T17:30:00Z"},
+    // Active C
+    {lock_number:"C04",category:"C",equipment:"Conveyor C4",contractor_company:"ExtFix Ltd",checkin_time:"2026-09-18T07:30:00Z",reason:"Scheduled PM",contractor_employee:"",checkout_time:""},
+    {lock_number:"C15",category:"C",equipment:"Take-away 3",contractor_company:"ACME Maintenance",checkin_time:"2026-09-18T14:32:00Z",reason:"Scheduled PM",contractor_employee:"",checkout_time:""},
+    // Completed C
+    {lock_number:"C12",category:"C",equipment:"Conveyor C12",contractor_company:"ACME Maintenance",checkin_time:"2026-09-17T14:00:00Z",reason:"Component replacement",contractor_employee:"Jane Doe",checkout_time:"2026-09-17T18:30:00Z"},
+    {lock_number:"C08",category:"C",equipment:"Induction 3",contractor_company:"ExtFix Ltd",checkin_time:"2026-09-16T09:00:00Z",reason:"Electrical repair",contractor_employee:"Mario Rossi",checkout_time:"2026-09-16T12:00:00Z"}
+];
+
+// ── DEMO: ADMIN DATA ──
+var demoAdmin={
+    badge_map:[{key:"10000001",value:"marco.ricci",active:true},{key:"10000002",value:"sarah.kumar",active:true},{key:"10000003",value:"lucas.berg",active:true},{key:"10000004",value:"yuki.tanaka",active:true},{key:"10000005",value:"omar.hassan",active:true},{key:"10000006",value:"elena.popov",active:true},{key:"10000007",value:"james.oconnor",active:true},{key:"10000008",value:"mei.chen",active:true},{key:"10000009",value:"alex.novak",active:true},{key:"10000010",value:"priya.sharma",active:true},{key:"10000011",value:"ravi.patel",active:true},{key:"10000012",value:"anna.fischer",active:true}],
+    lock_list:ALL_LOCKS.map(function(l){return{key:l,value:getCat(l),active:true}}),
+    locations:[{key:"Sorter Lane 1",active:true},{key:"Sorter Lane 3",active:true},{key:"Sorter Lane 5",active:true},{key:"Sorter Lane 8",active:true},{key:"Conveyor C1",active:true},{key:"Conveyor C4",active:true},{key:"Conveyor C7",active:true},{key:"Conveyor C12",active:true},{key:"Induction 1",active:true},{key:"Induction 2",active:true},{key:"Induction 3",active:true},{key:"Divert 2",active:true},{key:"Divert 5",active:true},{key:"Take-away 3",active:true}],
+    reasons:[{key:"Scheduled PM",active:true},{key:"Corrective maintenance",active:true},{key:"Component replacement",active:true},{key:"Inspection",active:true},{key:"Cleaning",active:true},{key:"Electrical repair",active:true},{key:"Safety concern",active:true}],
+    contractors:[{key:"ACME Maintenance",active:true},{key:"ExtFix Ltd",active:true},{key:"TechPro Services",active:true}]
+};
+
+// ── DEMO HELPERS ──
+function resolveBadge(b){var e=demoAdmin.badge_map.find(function(x){return x.key===b&&x.active});return e?e.value:null;}
+function buildDemoLocks(){
+    var now=new Date();
+    return ALL_LOCKS.map(function(l){
+        var ci=demoCheckins[l];
+        if(ci){
+            var elapsed=(now-new Date(ci.checkin_time))/3600000;
+            return{lock_number:l,status:"checked_in",category:getCat(l),user:ci.user||"",equipment:ci.equipment||"",reason:ci.reason||"",hours_elapsed:elapsed,alert:elapsed>=CONFIG.ALERT_H,checkin_time:ci.checkin_time,contractor_company:ci.contractor_company||"",contractor_employee:ci.contractor_employee||""};
+        }
+        return{lock_number:l,status:"free",category:getCat(l)};
+    });
+}
+function getDemoLocks(){
+    var locks=buildDemoLocks();var inUse=locks.filter(function(l){return l.status==="checked_in"}).length;
+    var alerts=locks.filter(function(l){return l.alert}).length;
+    return Promise.resolve({server_time:new Date().toISOString(),total:locks.length,in_use:inUse,free:locks.length-inUse,alerts:alerts,locks:locks});
+}
+function getDemoAdminList(ct){var e=demoAdmin[ct]||[];return Promise.resolve({config_type:ct,count:e.length,entries:e});}
+function demoAdminWrite(action,ct,key,value,active){
+    if(!demoAdmin[ct])demoAdmin[ct]=[];var list=demoAdmin[ct];
+    if(action==="add"){if(list.find(function(e){return e.key===key}))return{error:"Already exists"};list.push({key:key,value:value||key,active:active!==false});}
+    else if(action==="update"){var it=list.find(function(e){return e.key===key});if(!it)return{error:"Not found"};if(value)it.value=value;it.active=active;}
+    else if(action==="delete"){var idx=list.findIndex(function(e){return e.key===key});if(idx===-1)return{error:"Not found"};list.splice(idx,1);}
+    return{status:"ok",message:action+" successful (DEMO)"};
+}
+</script>
+
+<script>
+"use strict";
+
+// ── CLOCK ──
+function tickClock(){var n=new Date();document.getElementById("clock").textContent=n.toLocaleTimeString("en-GB");document.getElementById("date-display").textContent=n.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});}
+setInterval(tickClock,1000);tickClock();
+
+// ── VIEW SWITCHING ──
+var storicoLoaded=false,adminLoaded=false;
+document.querySelectorAll(".view-tab").forEach(function(tab){
+    tab.addEventListener("click",function(){
+        document.querySelectorAll(".view-tab").forEach(function(t){t.classList.remove("active")});
+        tab.classList.add("active");
+        document.querySelectorAll(".view-panel").forEach(function(p){p.classList.remove("active")});
+        document.getElementById("view-"+tab.dataset.view).classList.add("active");
+        if(tab.dataset.view==="storico"&&!storicoLoaded){storicoLoaded=true;refreshHistory();}
+        if(tab.dataset.view==="admin"&&!adminLoaded)loadAllAdmin();
+    });
+});
+
+// ══════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════
+var locksData=[],activeCat="all",activeKpiFilter="all";
+function fmtDur(h){var hh=Math.floor(h),mm=Math.round((h-hh)*60);return hh>0?hh+"h "+mm+"m":mm+"m";}
+function setKpiFilter(f){
+    activeKpiFilter=f;
+    document.querySelectorAll(".kpi-card").forEach(function(c){c.classList.remove("active-filter")});
+    document.querySelector('.kpi-card[data-kpifilter="'+f+'"]').classList.add("active-filter");
+    renderDashboard();
+}
+function renderDashboard(){
+    var grid=document.getElementById("board-grid"),aArea=document.getElementById("alert-area");
+    grid.innerHTML="";
+    var filtered=activeCat==="all"?locksData:locksData.filter(function(l){return l.category===activeCat});
+    // Apply KPI filter
+    if(activeKpiFilter==="inuse")filtered=filtered.filter(function(l){return l.status==="checked_in"});
+    else if(activeKpiFilter==="free")filtered=filtered.filter(function(l){return l.status==="free"});
+    else if(activeKpiFilter==="alert")filtered=filtered.filter(function(l){return l.alert});
+    var alerts=[];
+    filtered.forEach(function(lk){
+        var t=document.createElement("div");t.className="lock-tile";
+        if(lk.status==="checked_in"){
+            t.classList.add("inuse-"+lk.category);
+            if(lk.alert){t.classList.add("alert-tile");alerts.push(lk);t.innerHTML='<div class="alert-badge">!</div>';}
+            var who=lk.user||lk.contractor_company||"";
+            t.innerHTML+='<div class="lock-name">'+lk.lock_number+'</div><div class="lock-status"><i class="fa-solid fa-lock" style="font-size:9px"></i> IN USE</div><div class="lock-user"><i class="fa-solid fa-user" style="font-size:8px"></i> '+who+'</div><div class="lock-time">'+fmtDur(lk.hours_elapsed||0)+'</div>';
+            t.title=lk.lock_number+"\nUser: "+who+"\nEquipment: "+(lk.equipment||"")+"\nReason: "+(lk.reason||"")+"\nElapsed: "+fmtDur(lk.hours_elapsed||0);
+        }else{
+            t.classList.add("free");
+            t.innerHTML='<div class="lock-name">'+lk.lock_number+'</div><div class="lock-status"><i class="fa-solid fa-lock-open" style="font-size:9px"></i> FREE</div>';
+        }
+        grid.appendChild(t);
+    });
+    var alertBody=document.getElementById("alert-box-body");
+    if(alerts.length>0){
+        aArea.style.display="block";
+        document.getElementById("alert-title-text").textContent=alerts.length+" Alert"+(alerts.length>1?"s":"")+" (>"+CONFIG.ALERT_H+"h)";
+        alertBody.innerHTML=alerts.map(function(a){var who=a.user||a.contractor_company||"";return'<div class="alert-banner"><i class="fa-solid fa-triangle-exclamation"></i><div><strong>'+a.lock_number+'</strong> in use for <strong>'+fmtDur(a.hours_elapsed)+'</strong> &#8212; '+who+' @ '+(a.equipment||"")+'</div></div>';}).join("");
+    }else{
+        aArea.style.display="none";
+    }
+}
+function updateKPIs(d){document.getElementById("kpi-total").textContent=d.total||"--";document.getElementById("kpi-inuse").textContent=d.in_use||0;document.getElementById("kpi-free").textContent=d.free||0;document.getElementById("kpi-alert").textContent=d.alerts||0;}
+// In LIVE mode, rebuild the in-memory demoCheckins + ALL_LOCKS from the real
+// backend state so the check-in/check-out form (which validates client-side)
+// keeps working exactly as in DEMO — just backed by DynamoDB.
+function hydrateFromLive(d){
+    var locks=d.locks||[];
+    var ci={};
+    var all=[];
+    locks.forEach(function(l){
+        all.push(l.lock_number);
+        if(l.status==="checked_in"){
+            ci[l.lock_number]={
+                user:l.user||"",
+                contractor_company:l.contractor_company||"",
+                equipment:l.equipment||"",
+                reason:l.reason||"",
+                checkin_time:l.checkin_time||""
+            };
+        }
+    });
+    if(all.length){ALL_LOCKS=all;}
+    demoCheckins=ci;
+}
+async function pollLocks(){
+    try{
+        var d=DEMO?await getDemoLocks():await apiFetch("/locks");
+        if(!DEMO)hydrateFromLive(d);
+        locksData=d.locks||[];updateKPIs(d);renderDashboard();
+        document.getElementById("live-dot").style.background="#36b37e";
+        document.getElementById("status-text").textContent=DEMO?"DEMO":"LIVE";
+    }catch(e){console.error(e);document.getElementById("live-dot").style.background="#c62828";document.getElementById("status-text").textContent="Offline";}
+}
+document.getElementById("cat-tabs").addEventListener("click",function(e){var t=e.target.closest(".cat-tab");if(!t)return;document.querySelectorAll(".cat-tab").forEach(function(x){x.classList.remove("active")});t.classList.add("active");activeCat=t.dataset.cat;renderDashboard();});
+
+// ── ALERT TOGGLE ──
+var alertsCollapsed=false;
+function toggleAlerts(){alertsCollapsed=!alertsCollapsed;document.getElementById("alert-box-body").classList.toggle("collapsed",alertsCollapsed);document.getElementById("alert-toggle-icon").innerHTML=alertsCollapsed?'<i class="fa-solid fa-chevron-right"></i>':'<i class="fa-solid fa-chevron-down"></i>';}
+
+// ══════════════════════════════════════
+//  CHECK-IN / CHECK-OUT
+// ══════════════════════════════════════
+var cioMode="checkin",selectedSheet="";
+
+function setCioMode(m){
+    cioMode=m;
+    document.getElementById("mode-ci").classList.toggle("active",m==="checkin");
+    document.getElementById("mode-co").classList.toggle("active",m==="checkout");
+    // Reset sheet selection
+    selectedSheet="";
+    document.querySelectorAll(".sheet-btn").forEach(function(b){b.classList.remove("sel")});
+    document.getElementById("cio-fields").innerHTML="";
+    document.getElementById("cio-submit").style.display="none";
+    document.getElementById("cio-flash").className="cio-flash";
+}
+
+function selectSheet(type){
+    selectedSheet=type;
+    document.querySelectorAll(".sheet-btn").forEach(function(b){b.classList.remove("sel")});
+    var cls={A:"red",S:"blue",C:"yellow"};
+    document.querySelector(".sheet-btn."+cls[type]).classList.add("sel");
+    document.getElementById("cio-flash").className="cio-flash";
+    buildCioFields();
+}
+
+function buildCioFields(){
+    var box=document.getElementById("cio-fields");
+    var btn=document.getElementById("cio-submit");
+    var isYellow=selectedSheet==="C";
+    var html="";
+
+    if(cioMode==="checkin"){
+        // ── CHECK-IN FIELDS ──
+        var step=1;
+        html+='<div class="cio-group"><h3><span class="step-num">'+step+'</span><i class="fa-solid fa-key"></i> Lock Number (scan barcode)</h3>';
+        html+='<input type="text" id="cio-lock" class="cio-input" placeholder="Scan lock barcode..." autocomplete="off">';
+        html+='<div class="cio-detect" id="cio-lock-det"></div></div>';
+        step++;
+        var locOpts=demoAdmin.locations.filter(function(e){return e.active}).map(function(e){return'<option value="'+e.key+'">'}).join("");
+        html+='<div class="cio-group"><h3><span class="step-num">'+step+'</span><i class="fa-solid fa-wrench"></i> Equipment Being Locked Out</h3>';
+        html+='<input type="text" id="cio-equipment" class="cio-input" list="dl-locations" placeholder="e.g. Sorter Lane 3" autocomplete="off"><datalist id="dl-locations">'+locOpts+'</datalist></div>';
+        step++;
+        if(isYellow){
+            var conOpts=demoAdmin.contractors.filter(function(e){return e.active}).map(function(e){return'<option value="'+e.key+'">'}).join("");
+            html+='<div class="cio-group"><h3><span class="step-num">'+step+'</span><i class="fa-solid fa-building"></i> Contractor Company</h3>';
+            html+='<input type="text" id="cio-company" class="cio-input" list="dl-contractors" placeholder="e.g. ACME Maintenance" autocomplete="off"><datalist id="dl-contractors">'+conOpts+'</datalist></div>';
+        }else{
+            html+='<div class="cio-group"><h3><span class="step-num">'+step+'</span><i class="fa-solid fa-id-badge"></i> Badge — Authorized Associate (scan barcode)</h3>';
+            html+='<input type="text" id="cio-badge" class="cio-input" placeholder="Scan badge barcode..." autocomplete="off">';
+            html+='<div class="cio-detect" id="cio-badge-det"></div></div>';
+        }
+        step++;
+        var resOpts=demoAdmin.reasons.filter(function(e){return e.active}).map(function(e){return'<option value="'+e.key+'">'}).join("");
+        html+='<div class="cio-group"><h3><span class="step-num">'+step+'</span><i class="fa-solid fa-clipboard-list"></i> Reason for Lockout</h3>';
+        html+='<input type="text" id="cio-reason" class="cio-input" list="dl-reasons" placeholder="e.g. Scheduled PM" autocomplete="off"><datalist id="dl-reasons">'+resOpts+'</datalist></div>';
+        btn.className="btn-submit ci";btn.innerHTML='<i class="fa-solid fa-lock"></i> CONFIRM CHECK-IN';
+    }else{
+        // ── CHECK-OUT FIELDS ──
+        // Build dropdown of active locks for this sheet type
+        var activeLocks=getActiveLocksForType(selectedSheet);
+        html+='<div class="cio-group"><h3><span class="step-num">1</span><i class="fa-solid fa-key"></i> Select Lock to Return</h3>';
+        if(activeLocks.length===0){
+            html+='<p style="color:var(--muted);font-size:13px;padding:8px 0">No '+selectedSheet+' locks are currently in use.</p>';
+        }else{
+            html+='<select id="cio-lock-select" class="cio-select"><option value="">— Select a lock —</option>';
+            activeLocks.forEach(function(al){
+                var elapsed=fmtDur((new Date()-new Date(al.checkin_time))/3600000);
+                var who=al.user||al.contractor_company||"";
+                html+='<option value="'+al.lock_number+'">'+al.lock_number+' — '+al.equipment+' — '+who+' ('+elapsed+')</option>';
+            });
+            html+='</select></div>';
+            if(isYellow){
+                html+='<div class="cio-group"><h3><span class="step-num">2</span><i class="fa-solid fa-user"></i> Contractor Employee who is using the lock</h3>';
+                html+='<input type="text" id="cio-co-employee" class="cio-input" placeholder="e.g. Mario Rossi" autocomplete="off"></div>';
+            }else{
+                html+='<div class="cio-group"><h3><span class="step-num">2</span><i class="fa-solid fa-id-badge"></i> Badge — Authorized Associate Removing Lockout (scan barcode)</h3>';
+                html+='<input type="text" id="cio-co-badge" class="cio-input" placeholder="Scan badge barcode..." autocomplete="off">';
+                html+='<div class="cio-detect" id="cio-co-badge-det"></div></div>';
+            }
+        }
+        btn.className="btn-submit co";btn.innerHTML='<i class="fa-solid fa-lock-open"></i> CONFIRM CHECK-OUT';
+    }
+
+    box.innerHTML=html;
+    btn.style.display=(cioMode==="checkout"&&getActiveLocksForType(selectedSheet).length===0)?"none":"flex";
+
+    // Attach live validation listeners
+    if(cioMode==="checkin"){
+        var lockInput=document.getElementById("cio-lock");
+        if(lockInput){
+            lockInput.focus();
+            lockInput.addEventListener("input",validateLockInput);
+        }
+        var badgeInput=document.getElementById("cio-badge");
+        if(badgeInput)badgeInput.addEventListener("input",validateBadgeInput);
+    }else{
+        var coBadge=document.getElementById("cio-co-badge");
+        if(coBadge)coBadge.addEventListener("input",function(){
+            var v=this.value.trim(),det=document.getElementById("cio-co-badge-det");
+            if(!v){det.textContent="";return;}
+            var login=resolveBadge(v);
+            det.textContent=login?"Resolved: "+login:"Badge not recognized";
+            det.className="cio-detect "+(login?"found":"notfound");
+        });
+    }
+}
+
+function getActiveLocksForType(type){
+    var result=[];
+    var catPrefix=type;
+    Object.keys(demoCheckins).forEach(function(lockNum){
+        if(getCat(lockNum)===catPrefix){
+            result.push(Object.assign({lock_number:lockNum},demoCheckins[lockNum]));
+        }
+    });
+    result.sort(function(a,b){return a.lock_number.localeCompare(b.lock_number)});
+    return result;
+}
+
+function validateLockInput(){
+    var v=document.getElementById("cio-lock").value.trim().toUpperCase();
+    var det=document.getElementById("cio-lock-det");
+    if(!v){det.textContent="";return;}
+    if(ALL_LOCKS.indexOf(v)<0){det.textContent="Lock not found: "+v;det.className="cio-detect notfound";return;}
+    var cat=getCat(v);
+    if(cat!==selectedSheet){
+        var names={A:"Red (A)",S:"Blue (B)",C:"Yellow (C)"};
+        det.textContent="Lock "+v+" is "+names[cat]+", but you selected "+names[selectedSheet]+" sheet";
+        det.className="cio-detect notfound";return;
+    }
+    if(demoCheckins[v]){det.textContent="Lock "+v+" is already in use";det.className="cio-detect notfound";return;}
+    det.textContent="✓ "+v+" — Available";det.className="cio-detect found";
+}
+
+function validateBadgeInput(){
+    var v=document.getElementById("cio-badge").value.trim();
+    var det=document.getElementById("cio-badge-det");
+    if(!v){det.textContent="";return;}
+    var login=resolveBadge(v);
+    det.textContent=login?"Resolved: "+login:"Badge not recognized";
+    det.className="cio-detect "+(login?"found":"notfound");
+}
+
+function showFlash(msg,type){var el=document.getElementById("cio-flash");el.textContent=msg;el.className="cio-flash "+(type==="ok"?"ok":"err");}
+
+async function submitCio(){
+    if(!selectedSheet){showFlash("Select a sheet type first","err");return;}
+    var isYellow=selectedSheet==="C";
+    var now=new Date();
+    var btn=document.getElementById("cio-submit");
+
+    if(cioMode==="checkin"){
+        // ── VALIDATE CHECK-IN ──
+        var lockNum=(document.getElementById("cio-lock").value||"").trim().toUpperCase();
+        if(!lockNum){showFlash("Lock number is required","err");return;}
+        if(ALL_LOCKS.indexOf(lockNum)<0){showFlash("Lock '"+lockNum+"' not found in the system","err");return;}
+        if(getCat(lockNum)!==selectedSheet){showFlash("Lock "+lockNum+" does not belong to "+selectedSheet+" sheet","err");return;}
+        if(demoCheckins[lockNum]){showFlash("Lock "+lockNum+" is already in use","err");return;}
+
+        var equipment=(document.getElementById("cio-equipment").value||"").trim();
+        if(!equipment){showFlash("Equipment Being Locked Out is required","err");return;}
+
+        var reason=(document.getElementById("cio-reason").value||"").trim();
+        if(!reason){showFlash("Reason for Lockout is required","err");return;}
+
+        var company="",badge="",login="";
+        if(isYellow){
+            company=(document.getElementById("cio-company").value||"").trim();
+            if(!company){showFlash("Contractor Company is required","err");return;}
+        }else{
+            badge=(document.getElementById("cio-badge").value||"").trim();
+            if(!badge){showFlash("Badge is required for "+selectedSheet+" locks","err");return;}
+            login=resolveBadge(badge);
+            if(!login){showFlash("Badge '"+badge+"' not recognized — add in Admin Config","err");return;}
+        }
+
+        if(DEMO){
+            var logRecord={lock_number:lockNum,category:selectedSheet,equipment:equipment,checkin_time:now.toISOString(),reason:reason,checkout_time:""};
+            var checkinRecord={equipment:equipment,reason:reason,checkin_time:now.toISOString()};
+            if(isYellow){logRecord.contractor_company=company;logRecord.contractor_employee="";checkinRecord.contractor_company=company;}
+            else{logRecord.user_in=login;logRecord.user_out="";checkinRecord.user=login;}
+            demoCheckins[lockNum]=checkinRecord;
+            demoLog.unshift(logRecord);
+            showFlash("✓ CHECK-IN complete: "+lockNum+" — "+(isYellow?company:login),"ok");
+        }else{
+            // ── LIVE: POST /checkin ──
+            var body={lock_number:lockNum,equipment:equipment,reason:reason};
+            if(isYellow)body.contractor_company=company;else body.badge_id=badge;
+            try{
+                if(btn)btn.disabled=true;
+                await apiFetch("/checkin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+                showFlash("✓ CHECK-IN complete: "+lockNum+" — "+(isYellow?company:login),"ok");
+            }catch(e){showFlash(e.message,"err");if(btn)btn.disabled=false;return;}
+            if(btn)btn.disabled=false;
+        }
+
+    }else{
+        // ── VALIDATE CHECK-OUT ──
+        var sel=document.getElementById("cio-lock-select");
+        if(!sel){showFlash("No locks available to check out","err");return;}
+        var lockNum=sel.value;
+        if(!lockNum){showFlash("Select a lock to return","err");return;}
+        var ci=demoCheckins[lockNum];
+        if(!ci){showFlash("Lock "+lockNum+" is not in use","err");return;}
+
+        var dur=Math.round((now-new Date(ci.checkin_time))/60000);
+        var employee="",badge="",login="";
+
+        if(isYellow){
+            employee=(document.getElementById("cio-co-employee").value||"").trim();
+            if(!employee){showFlash("Contractor Employee name is required","err");return;}
+        }else{
+            badge=(document.getElementById("cio-co-badge").value||"").trim();
+            if(!badge){showFlash("Badge is required","err");return;}
+            login=resolveBadge(badge);
+            if(!login){showFlash("Badge '"+badge+"' not recognized","err");return;}
+            // Must be the same person who checked in — RED only (Blue/Transitional allows different associate)
+            if(selectedSheet==="A" && ci.user && login!==ci.user){showFlash("Lock was checked in by "+ci.user+" — only they can check it out (you scanned: "+login+")","err");return;}
+        }
+
+        if(DEMO){
+            if(isYellow){
+                var rec=demoLog.find(function(r){return r.lock_number===lockNum&&!r.checkout_time&&r.category==="C"});
+                if(rec){rec.contractor_employee=employee;rec.checkout_time=now.toISOString();}
+            }else{
+                var rec=demoLog.find(function(r){return r.lock_number===lockNum&&!r.checkout_time&&(r.category==="A"||r.category==="B")});
+                if(rec){rec.user_out=login;rec.checkout_time=now.toISOString();}
+            }
+            delete demoCheckins[lockNum];
+            var hh=Math.floor(dur/60),mm=dur%60;
+            showFlash("✓ CHECK-OUT complete: "+lockNum+" ("+hh+"h "+mm+"m)","ok");
+        }else{
+            // ── LIVE: POST /checkout ──
+            var body={lock:lockNum};
+            if(isYellow)body.contractor_employee=employee;else body.badge=badge;
+            try{
+                if(btn)btn.disabled=true;
+                var res=await apiFetch("/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+                var disp=res&&res.duration_display?res.duration_display:"";
+                showFlash("✓ CHECK-OUT complete: "+lockNum+(disp?" ("+disp+")":""),"ok");
+            }catch(e){showFlash(e.message,"err");if(btn)btn.disabled=false;return;}
+            if(btn)btn.disabled=false;
+        }
+    }
+
+    // Refresh dashboard + history
+    pollLocks();
+    if(storicoLoaded)refreshHistory(true);
+
+    // Reset after 1.5s
+    setTimeout(function(){
+        selectedSheet="";
+        document.querySelectorAll(".sheet-btn").forEach(function(b){b.classList.remove("sel")});
+        document.getElementById("cio-fields").innerHTML="";
+        document.getElementById("cio-submit").style.display="none";
+        document.getElementById("cio-flash").className="cio-flash";
+    },1500);
+}
+
+// ══════════════════════════════════════
+//  OPERATION HISTORY (Appendix A)
+// ══════════════════════════════════════
+var histType="A",histPage=0,PAGE_SZ=50,histSortCol="checkin_time",histSortDir="desc";
+
+// Column definitions per Appendix A
+var COLS_AB=[
+    {key:"lock_number",label:"Lock Number"},
+    {key:"equipment",label:"Equipment Being Locked Out"},
+    {key:"user_in",label:"Authorized Associate (login) Performing Lockout"},
+    {key:"checkin_time",label:"Lockout Start Date/Time",fmt:"ts"},
+    {key:"reason",label:"Reason for Lockout"},
+    {key:"user_out",label:"Authorized Associate (login) Removing Lockout"},
+    {key:"checkout_time",label:"Lockout Removal Date/Time",fmt:"ts"}
+];
+var COLS_C=[
+    {key:"lock_number",label:"Lock Number"},
+    {key:"equipment",label:"Equipment Being Locked Out"},
+    {key:"contractor_company",label:"Contractor Company"},
+    {key:"checkin_time",label:"Lockout Start Date/Time",fmt:"ts"},
+    {key:"reason",label:"Reason for Lockout"},
+    {key:"contractor_employee",label:"Contractor Employee who is using the lock"},
+    {key:"checkout_time",label:"Lockout Removal Date/Time",fmt:"ts"}
+];
+
+function getColsForType(t){return t==="C"?COLS_C:COLS_AB;}
+
+// ── HISTORY DATA SOURCE ──────────────────────────────────────────────
+// In DEMO we read the in-memory demoLog. In LIVE we fetch raw history rows
+// from GET /history and pair check_in/check_out records into one row per
+// lockout cycle (same pairing the server-side Excel export does).
+var liveLog=[];               // paired rows for the current histType (LIVE)
+var liveLogType=null;         // which type liveLog currently holds
+function histSource(){return DEMO?demoLog:liveLog;}
+
+// Pair raw backend history records (separate check_in / check_out rows)
+// into cycle rows compatible with the demoLog shape.
+function pairHistoryRecords(records,type){
+    var isYellow=(type==="C");
+    var checkins=[],checkouts=[];
+    records.forEach(function(r){
+        // check_out rows carry checkout_time; check_in rows don't.
+        if(r.checkout_time)checkouts.push(r);else checkins.push(r);
+    });
+    // Key completed cycles by (lock_number, checkin_time) so we can drop the
+    // matching check_in row that the check_out already represents.
+    var completed={};
+    var rows=[];
+    checkouts.forEach(function(r){
+        var key=r.lock_number+"|"+(r.checkin_time||"");
+        if(r.checkin_time)completed[key]=true;
+        rows.push({
+            lock_number:r.lock_number||"",category:type,
+            equipment:r.equipment||"",reason:r.reason||"",
+            checkin_time:r.checkin_time||"",checkout_time:r.checkout_time||"",
+            user_in:r.user_in||"",user_out:r.user_out||"",
+            contractor_company:r.contractor_company||"",
+            contractor_employee:r.contractor_employee||""
+        });
+    });
+    checkins.forEach(function(r){
+        var key=r.lock_number+"|"+(r.checkin_time||"");
+        if(completed[key])return;   // already covered by a check_out row
+        rows.push({
+            lock_number:r.lock_number||"",category:type,
+            equipment:r.equipment||"",reason:r.reason||"",
+            checkin_time:r.checkin_time||"",checkout_time:"",
+            user_in:r.user_in||"",user_out:"",
+            contractor_company:r.contractor_company||"",
+            contractor_employee:isYellow?"":(r.contractor_employee||"")
+        });
+    });
+    return rows;
+}
+
+// Fetch + pair history for the active type (LIVE only). Pulls a large page
+// so client-side filtering/sorting/paging keeps behaving like DEMO.
+async function loadHistoryLive(type){
+    var d=await apiFetch("/history?type="+encodeURIComponent(type)+"&page=1&page_size=500&sort_by=checkin_time&sort_dir=desc");
+    liveLog=pairHistoryRecords(d.records||[],type);
+    liveLogType=type;
+}
+
+function fmtTs(s){if(!s)return"";try{var d=new Date(s);return d.toLocaleDateString("en-GB",{day:"2-digit",month:"2-digit",year:"numeric"})+" "+d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}catch(e){return s;}}
+
+function initMonthFilter(){
+    var sel=document.getElementById("filter-month"),now=new Date();
+    var opt0=document.createElement("option");opt0.value="";opt0.textContent="All months";sel.appendChild(opt0);
+    for(var i=0;i<12;i++){var d=new Date(now.getFullYear(),now.getMonth()-i,1);var val=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");var lbl=d.toLocaleDateString("en-GB",{month:"long",year:"numeric"});var opt=document.createElement("option");opt.value=val;opt.textContent=lbl.charAt(0).toUpperCase()+lbl.slice(1);sel.appendChild(opt);}
+}
+
+// Load (LIVE: fetch+pair) then render the history table.
+// force=true re-fetches even if the type hasn't changed (e.g. after check-in/out).
+async function refreshHistory(force){
+    if(!DEMO){
+        try{
+            if(force||liveLogType!==histType)await loadHistoryLive(histType);
+        }catch(e){
+            console.error(e);
+            document.getElementById("storico-body").innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger)">Error loading history: '+e.message+'</td></tr>';
+            return;
+        }
+    }
+    renderHistory();
+}
+
+// Sub-tab switching
+document.querySelectorAll(".hist-tab").forEach(function(tab){
+    tab.addEventListener("click",function(){
+        document.querySelectorAll(".hist-tab").forEach(function(t){t.classList.remove("active")});
+        tab.classList.add("active");
+        histType=tab.dataset.type;histPage=0;histSortCol="checkin_time";histSortDir="desc";
+        refreshHistory();
+    });
+});
+
+function getFilteredLog(){
+    var month=document.getElementById("filter-month").value;
+    var search=document.getElementById("filter-search").value.toLowerCase().trim();
+    var cols=getColsForType(histType);
+    var filtered=histSource().filter(function(r){return r.category===histType});
+    // Compare month in LOCAL time (not UTC) to match the filter dropdown
+    if(month){filtered=filtered.filter(function(r){function localYM(ts){if(!ts)return"";var d=new Date(ts);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");}return localYM(r.checkin_time)===month||localYM(r.checkout_time)===month;});}
+    if(search){filtered=filtered.filter(function(r){return cols.some(function(c){return((r[c.key]||"")+"").toLowerCase().indexOf(search)>=0})});}
+    // Sort
+    filtered.sort(function(a,b){
+        var va=a[histSortCol]||"",vb=b[histSortCol]||"";
+        if(va<vb)return histSortDir==="asc"?-1:1;
+        if(va>vb)return histSortDir==="asc"?1:-1;return 0;
+    });
+    return filtered;
+}
+
+function renderHistory(){
+    var cols=getColsForType(histType);
+    // Render header
+    var head=document.getElementById("storico-head");
+    head.innerHTML="<tr>"+cols.map(function(c){
+        var arrow=histSortCol===c.key?(histSortDir==="asc"?" ▲":" ▼"):"";
+        return'<th data-sort="'+c.key+'" style="cursor:pointer">'+c.label+arrow+'</th>';
+    }).join("")+"</tr>";
+    // Attach sort listeners
+    head.querySelectorAll("th[data-sort]").forEach(function(th){
+        th.addEventListener("click",function(){
+            var col=th.dataset.sort;
+            if(histSortCol===col)histSortDir=histSortDir==="asc"?"desc":"asc";
+            else{histSortCol=col;histSortDir="desc";}
+            renderHistory();
+        });
+    });
+
+    var filtered=getFilteredLog();
+    var total=filtered.length,start=histPage*PAGE_SZ,items=filtered.slice(start,start+PAGE_SZ);
+    document.getElementById("storico-count").textContent=total+" records";
+    document.getElementById("page-info").textContent="Page "+(histPage+1)+" of "+Math.max(1,Math.ceil(total/PAGE_SZ));
+    document.getElementById("page-prev").disabled=histPage===0;
+    document.getElementById("page-next").disabled=start+PAGE_SZ>=total;
+
+    var body=document.getElementById("storico-body");
+    if(!items.length){body.innerHTML='<tr><td colspan="'+cols.length+'" style="text-align:center;padding:20px;color:var(--muted)">No records</td></tr>';return;}
+
+    body.innerHTML=items.map(function(r){
+        var isActive=!r.checkout_time;
+        return'<tr class="'+(isActive?"active-row":"")+'">'+cols.map(function(c){
+            var val=r[c.key]||"";
+            if(c.fmt==="ts")val=fmtTs(val);
+            if(c.key==="lock_number")val="<strong>"+val+"</strong>";
+            if(isActive&&(c.key==="user_out"||c.key==="contractor_employee"||c.key==="checkout_time"))val=val?val:'<span style="color:var(--warn);font-style:italic">⏳ Active</span>';
+            return"<td>"+val+"</td>";
+        }).join("")+"</tr>";
+    }).join("");
+}
+
+// Toolbar events
+document.getElementById("filter-month").addEventListener("change",function(){histPage=0;renderHistory();});
+document.getElementById("filter-search").addEventListener("input",function(){histPage=0;renderHistory();});
+document.getElementById("page-prev").addEventListener("click",function(){histPage--;renderHistory();});
+document.getElementById("page-next").addEventListener("click",function(){histPage++;renderHistory();});
+
+// ── EXPORT DOWNLOAD ──
+// DEMO: build a CSV client-side from the in-memory log.
+// LIVE: download the styled XLSX generated by the /export Lambda.
+function triggerDownload(url,filename){
+    var a=document.createElement("a");
+    a.href=url;a.download=filename;a.style.cssText="position:fixed;left:-9999px";
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a)},150);
+}
+function exportCsvDemo(){
+    var cols=getColsForType(histType);
+    var filtered=getFilteredLog();
+    if(!filtered.length){alert("No records to export for this sheet type.");return;}
+    var names={A:"Red_A",B:"Blue_B",C:"Yellow_C"};
+    // Build CSV
+    var csvRows=[cols.map(function(c){return'"'+c.label.replace(/"/g,'""')+'"'}).join(",")];
+    filtered.forEach(function(r){
+        csvRows.push(cols.map(function(c){
+            var val=r[c.key]||"";
+            if(c.fmt==="ts")val=fmtTs(val);
+            return'"'+(val+"").replace(/"/g,'""')+'"';
+        }).join(","));
+    });
+    var csv=csvRows.join("\r\n");
+    var filename="LOTO_Log_"+names[histType]+"_"+new Date().toISOString().slice(0,10)+".csv";
+    var bom="\uFEFF",encoded=encodeURIComponent(bom+csv);
+    triggerDownload("data:text/csv;charset=utf-8,"+encoded,filename);
+}
+async function exportXlsxLive(btn){
+    // Respect the current sheet type + month/search filters.
+    var month=document.getElementById("filter-month").value||"";
+    var search=(document.getElementById("filter-search").value||"").trim();
+    var qs="?type="+encodeURIComponent(histType);
+    if(month)qs+="&month="+encodeURIComponent(month);
+    if(search)qs+="&search="+encodeURIComponent(search);
+    var oldTxt=btn?btn.innerHTML:"";
+    try{
+        if(btn){btn.disabled=true;btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Exporting...';}
+        var resp=await fetch(CONFIG.API_URL+"/export"+qs,{
+            headers:{"x-api-key":CONFIG.API_KEY,
+                "Accept":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+        });
+        if(!resp.ok){
+            var msg="HTTP "+resp.status;
+            try{var j=await resp.json();if(j&&j.error)msg=j.error;}catch(e){}
+            throw new Error(msg);
+        }
+        var blob=await resp.blob();
+        var names={A:"Red_A",B:"Blue_B",C:"Yellow_C"};
+        var filename="LOTO_Log_"+(names[histType]||histType)+"_"+new Date().toISOString().slice(0,10)+".xlsx";
+        var objUrl=URL.createObjectURL(blob);
+        triggerDownload(objUrl,filename);
+        setTimeout(function(){URL.revokeObjectURL(objUrl)},2000);
+    }catch(e){
+        alert("Export failed: "+e.message);
+    }finally{
+        if(btn){btn.disabled=false;btn.innerHTML=oldTxt;}
+    }
+}
+document.getElementById("btn-export").addEventListener("click",function(e){
+    e.preventDefault();
+    if(DEMO)exportCsvDemo();else exportXlsxLive(this);
+});
+
+// ══════════════════════════════════════
+//  ADMIN CONFIG
+// ══════════════════════════════════════
+function getPw(){return document.getElementById("admin-pw").value;}
+var adminLoggedIn=false;
+var ADMIN_PW="CHANGE_ME";
+function reqPw(){if(!adminLoggedIn){showAdmFlash("Login with admin password first","err");return false;}return true;}
+function adminLogin(){
+    var pw=getPw();
+    var statusEl=document.getElementById("admin-pw-status");
+    if(!pw){statusEl.className="admin-pw-status wrong";statusEl.innerHTML='<i class="fa-solid fa-xmark"></i> Enter a password';return;}
+    // DEMO: validate against the local password. LIVE: the password is not
+    // checked here — it is sent with each write and verified by the backend,
+    // which rejects the operation (403) if it is wrong.
+    if(DEMO?pw===ADMIN_PW:true){
+        adminLoggedIn=true;
+        statusEl.className="admin-pw-status ok";statusEl.innerHTML='<i class="fa-solid fa-check"></i> '+(DEMO?"Authenticated":"Ready");
+        document.getElementById("admin-pw").disabled=true;
+        document.getElementById("btn-admin-login").style.display="none";
+        document.getElementById("btn-admin-logout").style.display="inline-flex";
+        document.getElementById("admin-pw-hint").textContent=DEMO?"You are logged in. You can now add, edit, and delete.":"Password will be verified by the server on each change.";
+        showAdmFlash(DEMO?"✓ Password correct — admin access enabled":"✓ Admin panel unlocked — server verifies the password on each change","ok");
+    }else{
+        adminLoggedIn=false;
+        statusEl.className="admin-pw-status wrong";statusEl.innerHTML='<i class="fa-solid fa-xmark"></i> Wrong password';
+        showAdmFlash("Incorrect password","err");
+    }
+}
+function adminLogout(){
+    adminLoggedIn=false;
+    document.getElementById("admin-pw").value="";document.getElementById("admin-pw").disabled=false;
+    document.getElementById("admin-pw-status").className="admin-pw-status none";
+    document.getElementById("btn-admin-login").style.display="";document.getElementById("btn-admin-logout").style.display="none";
+    document.getElementById("admin-pw-hint").textContent="Required for adding, editing, and deleting. Not needed for viewing.";
+    showAdmFlash("Logged out","ok");
+}
+function showAdmFlash(msg,type){var el=document.getElementById("admin-flash");el.textContent=msg;el.className="admin-flash "+(type==="ok"?"ok":"err");setTimeout(function(){el.className="admin-flash"},4000);}
+async function adminApi(body){
+    if(DEMO){var r=demoAdminWrite(body.action,body.config_type,body.config_key,body.value,body.active);if(r.error)throw new Error(r.error);if(r.message)showAdmFlash(r.message,"ok");return r;}
+    // Map frontend field names to what the admin_config Lambda expects:
+    //   config_key   -> key
+    //   admin_password -> password
+    var payload={action:body.action,config_type:body.config_type};
+    if(body.config_key!==undefined)payload.key=body.config_key;
+    if(body.value!==undefined)payload.value=body.value;
+    if(body.active!==undefined)payload.active=body.active;
+    if(body.admin_password!==undefined)payload.password=body.admin_password;
+    return await apiFetch("/admin/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+}
+async function loadAdmSec(ct,listId,cntId,renderFn){
+    try{var d=DEMO?await getDemoAdminList(ct):await adminApi({action:"list",config_type:ct});document.getElementById(cntId).textContent=d.count||0;document.getElementById(listId).innerHTML=renderFn(d.entries||[]);}
+    catch(e){document.getElementById(listId).innerHTML='<p style="color:var(--danger);font-size:12px">Error: '+e.message+'</p>';}
+}
+function renderOpTbl(entries){if(!entries.length)return'<p style="color:var(--muted);font-size:12px">No operators</p>';return'<table><thead><tr><th>Badge</th><th>Login</th><th>Active</th><th></th></tr></thead><tbody>'+entries.map(function(e){return'<tr><td><code>'+e.key+'</code></td><td><strong>'+e.value+'</strong></td><td class="'+(e.active?'active-yes':'active-no')+'">'+(e.active?'Yes':'No')+'</td><td class="btn-row"><button class="btn-sm toggle" onclick="admToggle(\'badge_map\',\''+e.key+'\','+!e.active+')">'+(e.active?'Disable':'Enable')+'</button><button class="btn-sm del" onclick="admDel(\'badge_map\',\''+e.key+'\')"><i class="fa-solid fa-trash"></i></button></td></tr>';}).join('')+'</tbody></table>';}
+function renderLkTbl(entries){if(!entries.length)return'<p style="color:var(--muted);font-size:12px">No locks</p>';return'<table><thead><tr><th>Lock</th><th>Cat</th><th>Active</th><th></th></tr></thead><tbody>'+entries.map(function(e){return'<tr><td><strong>'+e.key+'</strong></td><td><span class="cat-badge '+e.value+'">'+e.value+'</span></td><td class="'+(e.active?'active-yes':'active-no')+'">'+(e.active?'Yes':'No')+'</td><td class="btn-row"><button class="btn-sm toggle" onclick="admToggle(\'lock_list\',\''+e.key+'\','+!e.active+')">'+(e.active?'Disable':'Enable')+'</button><button class="btn-sm del" onclick="admDel(\'lock_list\',\''+e.key+'\')"><i class="fa-solid fa-trash"></i></button></td></tr>';}).join('')+'</tbody></table>';}
+function renderSimTbl(ct,entries){if(!entries.length)return'<p style="color:var(--muted);font-size:12px">None configured — add above</p>';return'<table><thead><tr><th>Name</th><th>Active</th><th></th></tr></thead><tbody>'+entries.map(function(e){var ek=e.key.replace(/'/g,"\\'");return'<tr><td>'+e.key+'</td><td class="'+(e.active?'active-yes':'active-no')+'">'+(e.active?'Yes':'No')+'</td><td class="btn-row"><button class="btn-sm toggle" onclick="admToggle(\''+ct+'\',\''+ek+'\','+!e.active+')">'+(e.active?'Disable':'Enable')+'</button><button class="btn-sm del" onclick="admDel(\''+ct+'\',\''+ek+'\')"><i class="fa-solid fa-trash"></i></button></td></tr>';}).join('')+'</tbody></table>';}
+async function loadAllAdmin(){adminLoaded=true;await Promise.all([loadAdmSec("badge_map","op-list","op-count",renderOpTbl),loadAdmSec("lock_list","lock-list","lock-count",renderLkTbl),loadAdmSec("locations","loc-list","loc-count",function(e){return renderSimTbl("locations",e)}),loadAdmSec("reasons","reason-list","reason-count",function(e){return renderSimTbl("reasons",e)}),loadAdmSec("contractors","contr-list","contr-count",function(e){return renderSimTbl("contractors",e)})]);}
+async function adminAdd(ct,kId,vId){if(!reqPw())return;var k=document.getElementById(kId).value.trim(),v=document.getElementById(vId).value?document.getElementById(vId).value.trim():"";if(!k||(vId&&!v)){showAdmFlash("Both fields required","err");return;}try{await adminApi({action:"add",config_type:ct,config_key:k,value:v,admin_password:getPw()});showAdmFlash("Added "+k,"ok");document.getElementById(kId).value="";if(vId)document.getElementById(vId).value="";loadAllAdmin();}catch(e){showAdmFlash(e.message,"err");}}
+async function adminAddSimple(ct,nId){if(!reqPw())return;var n=document.getElementById(nId).value.trim();if(!n){showAdmFlash("Name required","err");return;}try{await adminApi({action:"add",config_type:ct,config_key:n,value:n,admin_password:getPw()});showAdmFlash("Added '"+n+"'","ok");document.getElementById(nId).value="";loadAllAdmin();}catch(e){showAdmFlash(e.message,"err");}}
+async function admToggle(ct,key,active){if(!reqPw())return;try{await adminApi({action:"update",config_type:ct,config_key:key,active:active,admin_password:getPw()});showAdmFlash(key+(active?" enabled":" disabled"),"ok");loadAllAdmin();}catch(e){showAdmFlash(e.message,"err");}}
+async function admDel(ct,key){if(!reqPw())return;if(!confirm("Delete '"+key+"'?"))return;try{await adminApi({action:"delete",config_type:ct,config_key:key,admin_password:getPw()});showAdmFlash("Deleted '"+key+"'","ok");loadAllAdmin();}catch(e){showAdmFlash(e.message,"err");}}
+
+// ══════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════
+document.getElementById("site-badge").textContent=CONFIG.SITE;
+initMonthFilter();
+pollLocks();
+setInterval(pollLocks,CONFIG.POLL_MS);
+</script>
+</body>
+</html>

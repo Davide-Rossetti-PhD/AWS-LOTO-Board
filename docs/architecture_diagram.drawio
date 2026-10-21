@@ -1,0 +1,341 @@
+<mxfile host="65bd71144e">
+    <diagram id="loto-board-v2-arch" name="Digital LOTO Board v2.0">
+        <mxGraphModel dx="1345" dy="1198" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2700" pageHeight="1700" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="canvas-bg" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="0" y="0" width="2700" height="1700" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="Digital LOTO Board v2.0 — Serverless Architecture (AWS SAM)" style="text;html=1;align=center;verticalAlign=middle;fontSize=30;fontStyle=1;fontColor=#232F3E;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="20" width="2560" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="subtitle" value="Site: SITE-001 · Region: eu-west-1" style="text;html=1;align=center;verticalAlign=middle;fontSize=19;fontColor=#55606E;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="66" width="2560" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="onsite-group" value="On-Site" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2F7FC;strokeColor=#4A6C8C;strokeWidth=2;dashed=1;dashPattern=6 4;verticalAlign=top;fontSize=22;fontStyle=1;fontColor=#1F3A54;arcSize=3;spacingTop=12;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="130" width="370" height="660" as="geometry"/>
+                </mxCell>
+                <mxCell id="aws-group" value="AWS Cloud" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FBFCFD;strokeColor=#232F3E;strokeWidth=2;verticalAlign=top;align=left;fontSize=20;fontStyle=1;fontColor=#232F3E;spacingTop=10;spacingLeft=16;dashed=0;" parent="1" vertex="1">
+                    <mxGeometry x="510" y="130" width="2090" height="1260" as="geometry"/>
+                </mxCell>
+                <mxCell id="lambda-group" value="AWS Lambda — 7 Functions  (Python 3.12 · 128 MB · 60s · SharedLayer)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF6F0;strokeColor=#D45B07;strokeWidth=2;verticalAlign=top;align=center;fontSize=16;fontStyle=1;fontColor=#8A3B04;dashed=0;arcSize=2;spacingTop=12;" parent="1" vertex="1">
+                    <mxGeometry x="920" y="180" width="560" height="1140" as="geometry"/>
+                </mxCell>
+                <mxCell id="ddb-group" value="Amazon DynamoDB — 3 Tables  (PAY_PER_REQUEST · PITR on Locks &amp; History)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0F0FF;strokeColor=#3334B9;strokeWidth=2;verticalAlign=top;align=center;fontSize=16;fontStyle=1;fontColor=#2325A6;dashed=0;arcSize=2;spacingTop=12;" parent="1" vertex="1">
+                    <mxGeometry x="2000" y="180" width="560" height="820" as="geometry"/>
+                </mxCell>
+                <mxCell id="external-group" value="External Services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F7F2FC;strokeColor=#611F69;strokeWidth=2;dashed=1;dashPattern=6 4;verticalAlign=top;align=center;fontSize=20;fontStyle=1;fontColor=#4A1750;arcSize=3;spacingTop=12;" parent="1" vertex="1">
+                    <mxGeometry x="2000" y="1060" width="560" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-browser-apigw" value="HTTPS (API Key)" style="endArrow=classic;startArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#2C3E50;strokeWidth=3;fontSize=16;fontColor=#1C2B36;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="browser" target="apigw" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="580" y="312"/>
+                            <mxPoint x="580" y="540"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-apigw-getlocks" value="GET /locks" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#1565C0;strokeWidth=2.5;fontSize=14;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="apigw" target="fn-getlocks" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="720" y="565"/>
+                            <mxPoint x="820" y="565"/>
+                            <mxPoint x="820" y="290"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-apigw-gethistory" value="GET /history" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#1565C0;strokeWidth=2.5;fontSize=14;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="apigw" target="fn-gethistory" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="820" y="565"/>
+                            <mxPoint x="820" y="440"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-apigw-export" value="GET /export" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#1565C0;strokeWidth=2.5;fontSize=14;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="fn-export" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="820" y="565"/>
+                            <mxPoint x="820" y="590"/>
+                        </Array>
+                        <mxPoint x="720" y="565" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-apigw-checkin" value="POST /checkin" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#2E7D32;strokeWidth=2.5;fontSize=14;fontColor=#2E7D32;labelBackgroundColor=#FFFFFF;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="fn-checkin" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="720" y="520"/>
+                            <mxPoint x="950" y="520"/>
+                            <mxPoint x="950" y="740"/>
+                        </Array>
+                        <mxPoint x="720" y="560" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-apigw-checkout" value="POST /checkout" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#2E7D32;strokeWidth=2.5;fontSize=14;fontColor=#2E7D32;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="apigw" target="fn-checkout" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="800" y="540"/>
+                            <mxPoint x="800" y="890"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-apigw-admin" value="POST /admin/config" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#616161;strokeWidth=2.5;fontSize=14;fontColor=#616161;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="apigw" target="fn-admin" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="675" y="1040"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-getlocks-locks" value="Read" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#1565C0;strokeWidth=2.5;fontSize=14;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="fn-getlocks" target="ddb-locks" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1860" y="290"/>
+                            <mxPoint x="1860" y="290"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-gethistory-history" value="Read" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#1565C0;strokeWidth=2.5;fontSize=14;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="fn-gethistory" target="ddb-history" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1740" y="440"/>
+                            <mxPoint x="1740" y="535"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-export-history" value="Read" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#1565C0;strokeWidth=2.5;fontSize=14;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="fn-export" target="ddb-history" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1740" y="590"/>
+                            <mxPoint x="1740" y="535"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-checkin-locks" value="CRUD" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#2E7D32;strokeWidth=2.5;fontSize=14;fontColor=#2E7D32;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="fn-checkin" target="ddb-locks" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1800" y="740"/>
+                            <mxPoint x="1800" y="315"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-checkin-history" value="CRUD" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#2E7D32;strokeWidth=2.5;fontSize=14;fontColor=#2E7D32;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="fn-checkin" target="ddb-history" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1690" y="740"/>
+                            <mxPoint x="1690" y="560"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-checkin-config" value="Read" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#1565C0;strokeWidth=2;fontSize=13;fontColor=#1565C0;dashed=1;labelBackgroundColor=#FFFFFF;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="ddb-config" edge="1">
+                    <mxGeometry x="0.1205" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1126" y="765"/>
+                        </Array>
+                        <mxPoint x="1130" y="765" as="sourcePoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-checkout-locks" value="CRUD" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#2E7D32;strokeWidth=2.5;fontSize=14;fontColor=#2E7D32;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="fn-checkout" target="ddb-locks" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1830" y="890"/>
+                            <mxPoint x="1830" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-checkout-history" value="CRUD" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#2E7D32;strokeWidth=2.5;fontSize=14;fontColor=#2E7D32;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="fn-checkout" target="ddb-history" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1600" y="890"/>
+                            <mxPoint x="1600" y="510"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-checkout-config" value="Read" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#1565C0;strokeWidth=2;fontSize=13;fontColor=#1565C0;dashed=1;labelBackgroundColor=#FFFFFF;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" target="ddb-config" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1126" y="910"/>
+                            <mxPoint x="1940" y="910"/>
+                            <mxPoint x="1940" y="765"/>
+                        </Array>
+                        <mxPoint x="1126" y="910" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-admin-config" value="CRUD" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#616161;strokeWidth=2.5;fontSize=14;fontColor=#616161;labelBackgroundColor=#FFFFFF;" parent="1" target="ddb-config" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1860" y="1020"/>
+                            <mxPoint x="1860" y="750"/>
+                        </Array>
+                        <mxPoint x="1126" y="1020" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-admin-locks" value="CRUD" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#616161;strokeWidth=2.5;fontSize=14;fontColor=#616161;labelBackgroundColor=#FFFFFF;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" target="ddb-locks" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1126" y="1040"/>
+                            <mxPoint x="2580" y="1040"/>
+                            <mxPoint x="2580" y="240"/>
+                            <mxPoint x="2145" y="240"/>
+                        </Array>
+                        <mxPoint x="1126" y="1040" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-eb-alert" value="rate(1 hour)" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#E65100;strokeWidth=3.5;fontSize=14;fontColor=#E65100;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="eventbridge" target="fn-alert" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-alert-locks" value="Read" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#E65100;strokeWidth=2.5;fontSize=14;fontColor=#E65100;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="fn-alert" target="ddb-locks" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1560" y="1190"/>
+                            <mxPoint x="1560" y="410"/>
+                            <mxPoint x="2160" y="410"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-alert-config" value="CRUD (track sent alerts)" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#E65100;strokeWidth=2.5;fontSize=14;fontColor=#E65100;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="fn-alert" target="ddb-config" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1980" y="1190"/>
+                            <mxPoint x="1980" y="780"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-alert-slack" value="Slack Webhook" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#E65100;strokeWidth=3.5;fontSize=14;fontColor=#E65100;labelBackgroundColor=#FFFFFF;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" target="2" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1560" y="1230"/>
+                            <mxPoint x="1560" y="1310"/>
+                            <mxPoint x="2136" y="1310"/>
+                        </Array>
+                        <mxPoint x="1560" y="1190" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="scanner-browser-link" value="&lt;font color=&quot;#1d1b1b&quot;&gt;scan input&lt;/font&gt;" style="endArrow=classic;html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;strokeColor=#4A6C8C;fontSize=13;dashed=1;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="scanner" target="browser" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="browser" value="Web Browser (any device)&#10;&#10;• Dashboard — index.html&#10;  real-time lock status&#10;• Check-in — checkin.html&#10;  scan badge + lock" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4A6C8C;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=18;fontColor=#1F3043;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="205" width="300" height="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="scanner" value="USB Barcode Scanner (~€25)&#10;connected to on-site PC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#4A6C8C;fontSize=18;fontColor=#1F3043;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="460" width="300" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="locks-legend" value="Lock Categories (67 total)&#10;&#10;A        20   Red       A01–A20&#10;B        26   Blue      B01–B26&#10;C        20   Yellow   C01–C20&#10;TEST    1   Grey      TESTBENCH" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBFBFB;strokeColor=#8A99A8;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;fontSize=16;fontColor=#2F3A45;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="570" width="300" height="175" as="geometry"/>
+                </mxCell>
+                <mxCell id="apigw" value="Amazon API Gateway&#10;LotoApi (REST) · prod" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=15;fontStyle=1;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="490" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="apigw-info" value="• API Key required&#10;• CORS: AllowOrigin '*'&#10;• Binary media (Excel)&#10;• Rate: 5 req/s · burst 10" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FDF2F8;strokeColor=#E7157B;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=14;fontColor=#8A1052;" parent="1" vertex="1">
+                    <mxGeometry x="560" y="660" width="210" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="fn-getlocks" value="GetLocksFunction&#10;GET /locks" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" parent="1" vertex="1">
+                    <mxGeometry x="1046" y="250" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="fn-gethistory" value="GetHistoryFunction&#10;GET /history" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" parent="1" vertex="1">
+                    <mxGeometry x="1046" y="400" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="fn-export" value="ExportExcelFunction&#10;GET /export&#10;(256 MB · 120s · +OpenpyxlLayer)" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" parent="1" vertex="1">
+                    <mxGeometry x="1046" y="550" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="fn-checkin" value="CheckinFunction&#10;POST /checkin" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" parent="1" vertex="1">
+                    <mxGeometry x="1046" y="700" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="fn-checkout" value="CheckoutFunction&#10;POST /checkout" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" parent="1" vertex="1">
+                    <mxGeometry x="1046" y="850" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="fn-admin" value="AdminConfigFunction&#10;POST /admin/config" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" parent="1" vertex="1">
+                    <mxGeometry x="1046" y="1000" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="fn-alert" value="AlertCheckerFunction&#10;Schedule rate(1 hour)" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#ED7100;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" parent="1" vertex="1">
+                    <mxGeometry x="1046" y="1150" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="layers-box" value="Lambda Layers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE2CC;strokeColor=#D45B07;verticalAlign=top;align=center;fontSize=14;fontStyle=1;fontColor=#7A3303;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="1240" y="380" width="220" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer-shared" value="SharedLayer&#10;db_helpers, response_builder&#10;→ all 7 functions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D45B07;align=left;verticalAlign=middle;spacingLeft=8;spacingTop=4;fontSize=12;fontColor=#7A3303;" parent="1" vertex="1">
+                    <mxGeometry x="1252" y="420" width="196" height="66" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer-openpyxl" value="OpenpyxlLayer&#10;openpyxl&#10;→ ExportExcel only" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D45B07;align=left;verticalAlign=middle;spacingLeft=8;spacingTop=4;fontSize=12;fontColor=#7A3303;" parent="1" vertex="1">
+                    <mxGeometry x="1252" y="494" width="196" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="ddb-locks" value="" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#4D72F3;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;" parent="1" vertex="1">
+                    <mxGeometry x="2100" y="270" width="90" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ddb-locks-card" value="LocksTable&#10;SITE-001_loto_locks&#10;PK: lock_number&#10;67 items (20 A + 26 B + 20 C + 1 TEST)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3334B9;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=14;fontColor=#2325A6;" parent="1" vertex="1">
+                    <mxGeometry x="2210" y="268" width="320" height="94" as="geometry"/>
+                </mxCell>
+                <mxCell id="ddb-history" value="" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#4D72F3;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;" parent="1" vertex="1">
+                    <mxGeometry x="2100" y="490" width="90" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ddb-history-card" value="HistoryTable&#10;SITE-001_loto_history&#10;PK: lock_number · SK: timestamp&#10;check-in / check-out log" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3334B9;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=14;fontColor=#2325A6;" parent="1" vertex="1">
+                    <mxGeometry x="2210" y="488" width="320" height="94" as="geometry"/>
+                </mxCell>
+                <mxCell id="ddb-config" value="" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#4D72F3;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;" parent="1" vertex="1">
+                    <mxGeometry x="2100" y="720" width="90" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ddb-config-card" value="ConfigTable&#10;SITE-001_loto_config&#10;PK: config_type · SK: config_key&#10;alert thresholds, categories" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3334B9;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=14;fontColor=#2325A6;" parent="1" vertex="1">
+                    <mxGeometry x="2210" y="718" width="320" height="94" as="geometry"/>
+                </mxCell>
+                <mxCell id="eventbridge" value="Amazon EventBridge&#10;Rule: rate(1 hour)" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=1;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.eventbridge;" parent="1" vertex="1">
+                    <mxGeometry x="630" y="1145" width="90" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-box" value="Flow Legend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#232F3E;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=14;spacingTop=12;fontSize=20;fontStyle=1;fontColor=#1A1A1A;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="830" width="370" height="310" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-blue-line" value="" style="endArrow=none;html=1;strokeColor=#1565C0;strokeWidth=4;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="100" y="900" as="sourcePoint"/>
+                        <mxPoint x="150" y="900" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="legend-blue" value="Read flow (GET / Read)" style="text;html=1;align=left;verticalAlign=middle;fontSize=17;fontStyle=1;fontColor=#0D47A1;" parent="1" vertex="1">
+                    <mxGeometry x="165" y="884" width="265" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-green-line" value="" style="endArrow=none;html=1;strokeColor=#1B5E20;strokeWidth=5;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="100" y="948" as="sourcePoint"/>
+                        <mxPoint x="150" y="948" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="legend-green" value="Write flow (POST / CRUD)" style="text;html=1;align=left;verticalAlign=middle;fontSize=17;fontStyle=1;fontColor=#1B5E20;" parent="1" vertex="1">
+                    <mxGeometry x="165" y="934" width="265" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-orange-line" value="" style="endArrow=none;html=1;strokeColor=#D84315;strokeWidth=5;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="100" y="996" as="sourcePoint"/>
+                        <mxPoint x="150" y="996" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="legend-orange" value="Alert flow&#10;(EventBridge → Lambda → Slack)" style="text;html=1;align=left;verticalAlign=middle;fontSize=17;fontStyle=1;fontColor=#BF360C;" parent="1" vertex="1">
+                    <mxGeometry x="165" y="982" width="275" height="48" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-grey-line" value="" style="endArrow=none;html=1;strokeColor=#424242;strokeWidth=5;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="100" y="1056" as="sourcePoint"/>
+                        <mxPoint x="150" y="1056" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="legend-grey" value="Admin flow (config)" style="text;html=1;align=left;verticalAlign=middle;fontSize=17;fontStyle=1;fontColor=#2B2B2B;" parent="1" vertex="1">
+                    <mxGeometry x="165" y="1042" width="265" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-slate-line" value="" style="endArrow=none;html=1;strokeColor=#2C3E50;strokeWidth=5;" parent="1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="100" y="1104" as="sourcePoint"/>
+                        <mxPoint x="150" y="1104" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="legend-slate" value="HTTPS Browser ⇄ API Gateway" style="text;html=1;align=left;verticalAlign=middle;fontSize=17;fontStyle=1;fontColor=#1C2B36;" parent="1" vertex="1">
+                    <mxGeometry x="165" y="1090" width="265" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="slack-card" value="&lt;b&gt;Slack&lt;/b&gt;&#10;• Integration: Incoming Webhook (external URL)&#10;• Channel: #loto-alerts&#10;• Receives alert notifications from&#10;  AlertCheckerFunction&#10;• Trigger: locks checked-out &gt; 10h" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;spacingLeft=8;fontSize=17;fontColor=#3A1140;" parent="1" vertex="1">
+                    <mxGeometry x="2258" y="1118" width="292" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=data:image/png,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;" parent="1" vertex="1">
+                    <mxGeometry x="2030" y="1120" width="211.62" height="116" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,332 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Digital LOTO Board v2.0 — Cloud-native lock management system.
+  Deploys: DynamoDB (3 tables), Lambda (7 functions), API Gateway, EventBridge.
+
+# ──────────────────────────────────────────────
+# Parameters
+# ──────────────────────────────────────────────
+Parameters:
+  SiteName:
+    Type: String
+    Default: SITE-001
+    Description: Site identifier (used for resource naming)
+  SlackWebhookUrl:
+    Type: String
+    Default: "https://hooks.slack.com/triggers/YOUR/WEBHOOK/URL"
+    NoEcho: true
+    Description: >
+      Slack Workflow Trigger URL for the LOTO alerts channel. Pass at deploy time
+      (e.g. --parameter-overrides SlackWebhookUrl=https://...). Leave empty to
+      disable Slack notifications. Do NOT commit a real webhook URL here.
+  AdminPassword:
+    Type: String
+    Default: "CHANGE_ME"
+    NoEcho: true
+    Description: Password required for admin operations (delete history, modify config)
+
+# ──────────────────────────────────────────────
+# Global settings for all Lambda functions
+# ──────────────────────────────────────────────
+Globals:
+  Function:
+    Runtime: python3.12
+    MemorySize: 128
+    Timeout: 60
+    Environment:
+      Variables:
+        LOCKS_TABLE: !Ref LocksTable
+        HISTORY_TABLE: !Ref HistoryTable
+        CONFIG_TABLE: !Ref ConfigTable
+        SITE_NAME: !Ref SiteName
+        ALERT_HOURS: "10"
+        ADMIN_PASSWORD: !Ref AdminPassword
+        SLACK_WEBHOOK_URL: !Ref SlackWebhookUrl
+
+# ──────────────────────────────────────────────
+# Resources
+# ──────────────────────────────────────────────
+Resources:
+
+  # ────── DynamoDB Tables ──────
+
+  LocksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${SiteName}_loto_locks"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: lock_number
+          AttributeType: S
+      KeySchema:
+        - AttributeName: lock_number
+          KeyType: HASH
+
+  HistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${SiteName}_loto_history"
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: lock_number
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: S
+      KeySchema:
+        - AttributeName: lock_number
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+
+  ConfigTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${SiteName}_loto_config"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: config_type
+          AttributeType: S
+        - AttributeName: config_key
+          AttributeType: S
+      KeySchema:
+        - AttributeName: config_type
+          KeyType: HASH
+        - AttributeName: config_key
+          KeyType: RANGE
+
+  # ────── API Gateway ──────
+
+  LotoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Auth:
+        ApiKeyRequired: true
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type,x-api-key'"
+        AllowMethods: "'GET,POST,OPTIONS'"
+      BinaryMediaTypes:
+        - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: !Sub "${SiteName}-loto-key"
+      Enabled: true
+
+  UsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn: LotoApiprodStage
+    Properties:
+      UsagePlanName: !Sub "${SiteName}-loto-plan"
+      ApiStages:
+        - ApiId: !Ref LotoApi
+          Stage: prod
+      Throttle:
+        RateLimit: 5
+        BurstLimit: 10
+
+  UsagePlanKey:
+    Type: AWS::ApiGateway::UsagePlanKey
+    Properties:
+      KeyId: !Ref ApiKey        # nome logico scelto da me --> AWS genererà quello reale 
+      KeyType: API_KEY
+      UsagePlanId: !Ref UsagePlan
+
+  # ────── Lambda Functions (Microservices) ──────
+
+  CheckinFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${SiteName}-loto-checkin"
+      Handler: handler.handler
+      CodeUri: ../lambda/checkin/
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LocksTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HistoryTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConfigTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LotoApi
+            Path: /checkin
+            Method: POST
+
+  CheckoutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${SiteName}-loto-checkout"
+      Handler: handler.handler
+      CodeUri: ../lambda/checkout/
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LocksTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref HistoryTable
+        - DynamoDBReadPolicy:
+            TableName: !Ref ConfigTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LotoApi
+            Path: /checkout
+            Method: POST
+
+  GetLocksFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${SiteName}-loto-get-locks"
+      Handler: handler.handler
+      CodeUri: ../lambda/get_locks/
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref LocksTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LotoApi
+            Path: /locks
+            Method: GET
+
+  GetHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${SiteName}-loto-get-history"
+      Handler: handler.handler
+      CodeUri: ../lambda/get_history/
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref HistoryTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LotoApi
+            Path: /history
+            Method: GET
+
+  ExportExcelFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${SiteName}-loto-export-excel"
+      Handler: handler.handler
+      CodeUri: ../lambda/export_excel/
+      Timeout: 120
+      MemorySize: 256
+      Layers:
+        - !Ref SharedLayer
+        - !Ref OpenpyxlLayer
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref HistoryTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LotoApi
+            Path: /export
+            Method: GET
+
+  AlertCheckerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${SiteName}-loto-alert-checker"
+      Handler: handler.handler
+      CodeUri: ../lambda/alert_checker/
+      Layers:
+        - !Ref SharedLayer
+      Environment:
+        Variables:
+          SLACK_WEBHOOK_URL: !Ref SlackWebhookUrl
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref LocksTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConfigTable
+      Events:
+        ScheduleCheck:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+            Description: Check for locks exceeding 10h threshold (hourly)
+
+  AdminConfigFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${SiteName}-loto-admin-config"
+      Handler: handler.handler
+      CodeUri: ../lambda/admin_config/
+      Layers:
+        - !Ref SharedLayer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConfigTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref LocksTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref LotoApi
+            Path: /admin/config
+            Method: POST
+
+  # ────── Lambda Layers ──────
+
+  SharedLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${SiteName}-loto-shared"
+      Description: Shared DB and response helpers
+      ContentUri: ../lambda/shared/
+      CompatibleRuntimes:
+        - python3.12
+
+  OpenpyxlLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${SiteName}-loto-openpyxl"
+      Description: openpyxl library for Excel generation
+      ContentUri: ../layers/openpyxl/
+      CompatibleRuntimes:
+        - python3.12
+
+# ──────────────────────────────────────────────
+# Outputs
+# ──────────────────────────────────────────────
+Outputs:
+  ApiUrl:
+    Description: Base URL for the LOTO API
+    Value: !Sub "https://${LotoApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  ApiKeyId:
+    Description: API Key ID (retrieve value from console)
+    Value: !Ref ApiKey
+  LocksTableName:
+    Description: DynamoDB table for lock state
+    Value: !Ref LocksTable
+  HistoryTableName:
+    Description: DynamoDB table for history
+    Value: !Ref HistoryTable
+  ConfigTableName:
+    Description: DynamoDB table for configuration
+    Value: !Ref ConfigTable
